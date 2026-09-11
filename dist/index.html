@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1721">
+  <meta name="description" content="A private, offline-friendly bread baking journal and baker's percentage calculator.">
+  <title>Breadbook — Bread Journal</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%230b1721'/%3E%3Cpath d='M14 38c0-13 8-21 18-21s18 8 18 21c0 8-7 11-18 11S14 46 14 38Z' fill='%23e8a64b'/%3E%3Cpath d='m25 21 8 11m5-12-7 12' stroke='%23fff3dc' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#today" aria-label="Breadbook home"><span class="brand-mark">B</span><span>Breadbook</span></a>
+    <nav aria-label="Main navigation">
+      <button class="nav-item active" data-view="today"><span>◫</span> Today’s bake</button>
+      <button class="nav-item" data-view="journal"><span>≋</span> Bake journal <b id="nav-count">0</b></button>
+      <button class="nav-item" data-view="progress"><span>↗</span> Progress</button>
+      <button class="nav-item" data-view="data"><span>⇄</span> Data & backup</button>
+    </nav>
+    <div class="sidebar-foot">
+      <span class="privacy-dot"></span>
+      <div><strong>Private by default</strong><small>Saved on this device</small></div>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <button class="mobile-menu" aria-label="Open navigation">☰</button>
+      <div><span class="eyebrow" id="page-eyebrow">FORMULA LAB</span><h1 id="page-title">Build today’s loaf</h1></div>
+      <button class="ghost small" id="new-bake">+ New bake</button>
+    </header>
+
+    <section class="view active" id="view-today">
+      <div class="banner">
+        <img src="assets/bread-banner.webp" alt="Freshly baked rustic sourdough boule">
+        <div class="banner-copy"><span class="eyebrow">YOUR NEXT LOAF</span><h2>Small changes.<br>Better bread.</h2><p>Adjust the formula, record what happened, and let the pattern emerge.</p></div>
+      </div>
+
+      <form id="bake-form">
+        <input type="hidden" id="bake-id">
+        <div class="workspace-grid">
+          <section class="panel formula-panel">
+            <div class="panel-head"><div><span class="step">01</span><h2>The formula</h2></div><select id="preset" aria-label="Recipe preset"><option value="custom">Custom formula</option><option value="country">Country sourdough</option><option value="sandwich">Soft sandwich loaf</option><option value="focaccia">Focaccia</option><option value="bagel">Bagels</option></select></div>
+            <div class="field-grid meta-grid">
+              <label>Recipe name<input id="recipe-name" required value="Weekend country loaf"></label>
+              <label>Style<select id="style"><option>Country loaf</option><option>Sourdough</option><option>Sandwich loaf</option><option>Focaccia</option><option>Bagel</option><option>Baguette</option><option>Rye</option><option>Other</option></select></label>
+              <label>Bake date<input id="bake-date" type="date" required></label>
+              <label>Number of loaves<input id="loaves" type="number" min="1" step="1" value="1"></label>
+            </div>
+            <div class="ingredient-head"><span>Ingredient</span><span>Weight</span><span>Baker’s %</span></div>
+            <div id="ingredients"></div>
+            <button type="button" class="text-button" id="add-ingredient">+ Add ingredient</button>
+            <div class="formula-total"><span>Total dough</span><strong id="total-dough">0 g</strong><small id="per-loaf">0 g per loaf</small></div>
+          </section>
+
+          <section class="panel method-panel">
+            <div class="panel-head"><div><span class="step">02</span><h2>The method</h2></div><span class="autosave">● Draft autosaved</span></div>
+            <div class="field-grid">
+              <label>Room temperature <div class="input-unit"><input id="room-temp" type="number" step="1" value="72"><span>°F</span></div></label>
+              <label>Bulk fermentation <div class="input-unit"><input id="bulk-time" type="number" step="0.25" value="4.5"><span>hr</span></div></label>
+              <label>Cold proof <div class="input-unit"><input id="proof-time" type="number" step="0.5" value="12"><span>hr</span></div></label>
+              <label>Oven temperature <div class="input-unit"><input id="oven-temp" type="number" step="5" value="475"><span>°F</span></div></label>
+              <label>Bake time <div class="input-unit"><input id="bake-time" type="number" step="1" value="42"><span>min</span></div></label>
+              <label>Dough feel<select id="dough-feel"><option>Not recorded</option><option>Too stiff</option><option>Slightly stiff</option><option>Just right</option><option>Slightly slack</option><option>Too slack</option></select></label>
+            </div>
+            <label>Process notes<textarea id="process-notes" rows="4" placeholder="Stretch-and-fold schedule, shaping changes, timing observations…"></textarea></label>
+            <div class="rating-wrap"><span>How did it turn out?</span><div class="ratings" id="rating-buttons" role="radiogroup" aria-label="Overall bake score"></div><input id="rating" type="hidden" value="0"></div>
+            <label>Tasting notes<textarea id="tasting-notes" rows="3" placeholder="Crumb, crust, flavor—and one thing to change next time."></textarea></label>
+            <div class="form-actions"><button type="button" class="ghost" id="clear-form">Clear</button><button type="submit" class="primary" id="save-bake">Save bake →</button></div>
+          </section>
+        </div>
+      </form>
+    </section>
+
+    <section class="view" id="view-journal">
+      <div class="toolbar"><div class="search-wrap"><span>⌕</span><input id="search" type="search" placeholder="Search recipes, styles, or notes"></div><select id="style-filter"><option value="all">All styles</option></select></div>
+      <div id="journal-list" class="journal-list"></div>
+      <div id="journal-empty" class="empty"><span>◯</span><h2>No bakes recorded yet</h2><p>Your first loaf will appear here with its formula and notes.</p><button class="primary" data-go="today">Record the first bake</button></div>
+    </section>
+
+    <section class="view" id="view-progress">
+      <div class="stat-grid">
+        <article class="stat"><span>Total bakes</span><strong id="stat-bakes">0</strong><small id="stat-period">Ready when you are</small></article>
+        <article class="stat"><span>Average score</span><strong id="stat-score">—</strong><small>Out of 5</small></article>
+        <article class="stat"><span>Favorite style</span><strong id="stat-style">—</strong><small id="stat-style-count">No pattern yet</small></article>
+        <article class="stat"><span>Typical hydration</span><strong id="stat-hydration">—</strong><small>Across saved formulas</small></article>
+      </div>
+      <div class="progress-grid">
+        <section class="panel chart-panel"><div class="panel-head"><div><span class="eyebrow">OVER TIME</span><h2>Bake scores</h2></div></div><div id="score-chart" class="score-chart"></div></section>
+        <section class="panel insights"><span class="eyebrow">WHAT’S WORKING</span><h2>Notebook insights</h2><div id="insight-list"></div></section>
+      </div>
+    </section>
+
+    <section class="view" id="view-data">
+      <div class="data-grid">
+        <section class="panel data-card"><span class="data-icon">↓</span><h2>Download backup</h2><p>Save every formula and note as a portable JSON file. Keep this somewhere safe.</p><button class="primary" id="export-data">Download breadbook.json</button></section>
+        <section class="panel data-card"><span class="data-icon">↑</span><h2>Restore backup</h2><p>Import a Breadbook JSON backup. You can merge it with the journal already on this device.</p><button class="ghost" id="import-trigger">Choose JSON file</button><input type="file" id="import-data" accept="application/json,.json" hidden></section>
+        <section class="panel data-card"><span class="data-icon">⛓</span><h2>Connect a local file</h2><p>Chrome and Edge can save directly to a JSON file you choose. The browser will ask permission.</p><button class="ghost" id="connect-file">Connect JSON file</button><small id="file-status">Not connected</small></section>
+        <section class="panel data-card danger-card"><span class="data-icon">×</span><h2>Reset this device</h2><p>Erase the browser copy after you have downloaded a backup. This cannot be undone.</p><button class="danger" id="reset-data">Erase local data</button></section>
+      </div>
+      <div class="privacy-note"><strong>Why not <code>~/.config/bread_notes</code>?</strong><p>A website cannot choose or silently access folders on someone’s computer. That boundary protects personal files. Breadbook uses private browser storage and lets the user explicitly choose a JSON file when the browser supports it.</p></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="confirm-dialog"><h2>Erase the journal?</h2><p>This removes all bakes and drafts saved in this browser. Download a backup first if you want to keep them.</p><div class="dialog-actions"><button class="ghost" id="cancel-reset">Cancel</button><button class="danger" id="confirm-reset">Erase everything</button></div></dialog>
+  <script src="assets/app.js" defer></script>
+</body>
+</html>

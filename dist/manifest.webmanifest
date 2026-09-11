@@ -1,0 +1,9 @@
+{
+  "name": "Breadbook — Bread Journal",
+  "short_name": "Breadbook",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b1721",
+  "theme_color": "#0b1721",
+  "icons": []
+}
