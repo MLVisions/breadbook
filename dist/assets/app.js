@@ -181,7 +181,9 @@
   $("#reset-data").onclick=()=>$("#confirm-dialog").showModal(); $("#cancel-reset").onclick=()=>$("#confirm-dialog").close(); $("#confirm-reset").onclick=()=>{bakes=[];catalog=defaultCatalog.map(x=>({...x}));settings={costs:true,sales:false,progress:true,weeklyGoal:20};[STORE,DRAFT,CATALOG,SETTINGS].forEach(key=>localStorage.removeItem(key));$("#confirm-dialog").close();clearForm();renderAll();applySettings();toast("Local Breadbook data erased");};
   $(".mobile-menu").onclick=()=>$(".sidebar").classList.toggle("open");
 
-  if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+  if("serviceWorker" in navigator) window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").then(registration=>registration.update()).catch(()=>{});
+  });
   const context=document.modelContext;
   if(context?.registerTool){
     const register=tool=>Promise.resolve(context.registerTool(tool)).catch(()=>{});
