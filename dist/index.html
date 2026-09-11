@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1721">
-  <meta name="description" content="A private, offline-friendly bread baking journal and baker's percentage calculator.">
-  <title>Breadbook — Bread Journal</title>
+  <meta name="description" content="A private bread journal with simple recipe costing and business progress tools.">
+  <title>Breadbook — Bake, learn, grow</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%230b1721'/%3E%3Cpath d='M14 38c0-13 8-21 18-21s18 8 18 21c0 8-7 11-18 11S14 46 14 38Z' fill='%23e8a64b'/%3E%3Cpath d='m25 21 8 11m5-12-7 12' stroke='%23fff3dc' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/app.css">
@@ -16,7 +16,9 @@
     <nav aria-label="Main navigation">
       <button class="nav-item active" data-view="today"><span>◫</span> Today’s bake</button>
       <button class="nav-item" data-view="journal"><span>≋</span> Bake journal <b id="nav-count">0</b></button>
-      <button class="nav-item" data-view="progress"><span>↗</span> Progress</button>
+      <button class="nav-item" data-view="costs" data-feature="costs"><span>◇</span> Simple costs</button>
+      <button class="nav-item" data-view="progress" data-feature="progress"><span>↗</span> Progress</button>
+      <button class="nav-item" data-view="setup"><span>⚙</span> Setup</button>
       <button class="nav-item" data-view="data"><span>⇄</span> Data & backup</button>
     </nav>
     <div class="sidebar-foot">
@@ -53,6 +55,7 @@
             <div id="ingredients"></div>
             <button type="button" class="text-button" id="add-ingredient">+ Add ingredient</button>
             <div class="formula-total"><span>Total dough</span><strong id="total-dough">0 g</strong><small id="per-loaf">0 g per loaf</small></div>
+            <div class="cost-preview" data-feature="costs"><div><span>Estimated ingredient cost</span><strong id="formula-cost">$0.00</strong></div><div><span>Cost per loaf</span><strong id="loaf-cost">$0.00</strong></div></div>
           </section>
 
           <section class="panel method-panel">
@@ -68,10 +71,23 @@
             <label>Process notes<textarea id="process-notes" rows="4" placeholder="Stretch-and-fold schedule, shaping changes, timing observations…"></textarea></label>
             <div class="rating-wrap"><span>How did it turn out?</span><div class="ratings" id="rating-buttons" role="radiogroup" aria-label="Overall bake score"></div><input id="rating" type="hidden" value="0"></div>
             <label>Tasting notes<textarea id="tasting-notes" rows="3" placeholder="Crumb, crust, flavor—and one thing to change next time."></textarea></label>
+            <div class="selling-fields" data-feature="sales"><span class="section-label">Sales snapshot</span><div class="field-grid"><label>Selling price per loaf<div class="input-unit"><span>$</span><input id="sale-price" type="number" min="0" step="0.25" value="10"></div></label><label>Loaves sold<input id="loaves-sold" type="number" min="0" step="1" value="0"></label></div><p id="sale-preview">Record what sold to see ballpark gross profit.</p></div>
             <div class="form-actions"><button type="button" class="ghost" id="clear-form">Clear</button><button type="submit" class="primary" id="save-bake">Save bake →</button></div>
           </section>
         </div>
       </form>
+    </section>
+
+    <section class="view" id="view-costs">
+      <div class="feature-banner costs-banner"><img src="assets/bread-ingredients.webp" alt="Flour, salt, wheat and a kitchen scale on a baker’s workbench"><div><span class="eyebrow">SIMPLE COSTS</span><h2>What does a loaf really cost?</h2><p>Add what you paid and the package size. Breadbook handles the unit math and prices the formula you are currently building.</p></div></div>
+      <div class="cost-stat-grid"><article><span>Current batch</span><strong id="cost-batch">$0.00</strong><small>Ingredients only</small></article><article><span>Per loaf</span><strong id="cost-loaf">$0.00</strong><small id="cost-loaf-note">Using today’s formula</small></article><article><span>At your price</span><strong id="cost-margin">—</strong><small id="cost-margin-note">Turn on sales to compare</small></article></div>
+      <section class="panel catalog-panel">
+        <div class="catalog-header"><div><span class="eyebrow">INGREDIENT PRICES</span><h2>Keep it quick</h2><p>Try “Bread flour, $6.49 for 5 lb” or edit the simple fields below.</p></div><div class="quick-add"><input id="quick-cost" placeholder="Ingredient, $price for amount unit"><button class="primary" id="quick-cost-add">Add price</button></div></div>
+        <div class="catalog-labels"><span>Ingredient</span><span>Price paid</span><span>Package</span><span>Unit</span><span>Cost / 100 g</span><span></span></div>
+        <div id="catalog-list"></div>
+        <button class="text-button" id="add-cost-item">+ Add ingredient price</button>
+        <p class="fine-print">Mass units convert automatically. Water, starter, or anything you do not price simply contributes $0.</p>
+      </section>
     </section>
 
     <section class="view" id="view-journal">
@@ -81,16 +97,35 @@
     </section>
 
     <section class="view" id="view-progress">
+      <div class="feature-banner progress-banner"><img src="assets/bread-production.webp" alt="A dozen artisan loaves cooling on wooden bakery racks"><div><span class="eyebrow">FROM LOAVES TO LIVELIHOOD</span><h2>See the week taking shape.</h2><p>Every saved bake adds to the picture. Sales fields stay out of the way unless you turn them on.</p></div></div>
       <div class="stat-grid">
         <article class="stat"><span>Total bakes</span><strong id="stat-bakes">0</strong><small id="stat-period">Ready when you are</small></article>
         <article class="stat"><span>Average score</span><strong id="stat-score">—</strong><small>Out of 5</small></article>
         <article class="stat"><span>Favorite style</span><strong id="stat-style">—</strong><small id="stat-style-count">No pattern yet</small></article>
         <article class="stat"><span>Typical hydration</span><strong id="stat-hydration">—</strong><small>Across saved formulas</small></article>
       </div>
+      <div class="business-strip" data-feature="sales"><article><span>Loaves sold</span><strong id="biz-sold">0</strong></article><article><span>Revenue</span><strong id="biz-revenue">$0.00</strong></article><article><span>Ingredient cost</span><strong id="biz-cost">$0.00</strong></article><article><span>Est. gross profit</span><strong id="biz-profit">$0.00</strong></article><article><span>Weekly goal</span><strong id="biz-goal">0%</strong></article></div>
       <div class="progress-grid">
         <section class="panel chart-panel"><div class="panel-head"><div><span class="eyebrow">OVER TIME</span><h2>Bake scores</h2></div></div><div id="score-chart" class="score-chart"></div></section>
         <section class="panel insights"><span class="eyebrow">WHAT’S WORKING</span><h2>Notebook insights</h2><div id="insight-list"></div></section>
       </div>
+      <p class="profit-disclaimer" data-feature="sales">Estimates are before labor, delivery, taxes, and other expenses.</p>
+    </section>
+
+    <section class="view" id="view-setup">
+      <div class="setup-intro"><span class="eyebrow">MAKE IT YOURS</span><h2>Start simple. Add what earns its place.</h2><p>Breadbook can be a quiet baking journal or show a little more of the business. Changing modes never deletes saved information.</p></div>
+      <div class="mode-grid" role="radiogroup" aria-label="Breadbook mode">
+        <button class="mode-card" data-mode="journal"><span class="mode-icon">✎</span><strong>Bread journal</strong><small>Recipes, bake notes, and history</small></button>
+        <button class="mode-card" data-mode="costs"><span class="mode-icon">◇</span><strong>Baker + costs</strong><small>Journal plus simple ingredient costs</small><em>Recommended</em></button>
+        <button class="mode-card" data-mode="business"><span class="mode-icon">↗</span><strong>Small business</strong><small>Costs, sales snapshots, and progress</small></button>
+      </div>
+      <section class="panel feature-settings"><div><span class="eyebrow">CUSTOMIZE</span><h2>Choose what appears</h2></div>
+        <label class="switch-row"><span><strong>Simple costs</strong><small>Price recipes from basic package costs</small></span><input type="checkbox" id="toggle-costs"><i></i></label>
+        <label class="switch-row"><span><strong>Sales and profit</strong><small>Add price and loaves sold to each bake</small></span><input type="checkbox" id="toggle-sales"><i></i></label>
+        <label class="switch-row"><span><strong>Progress</strong><small>Show bake trends and weekly momentum</small></span><input type="checkbox" id="toggle-progress"><i></i></label>
+        <div class="goal-setting" data-feature="sales"><label>Weekly loaf goal<input id="weekly-goal" type="number" min="1" step="1" value="20"></label><p>Used only for the progress indicator.</p></div>
+      </section>
+      <div class="setup-note"><span>✓</span><div><strong>Nothing is locked in.</strong><p>Hidden features keep their data, and you can change this setup whenever the bakery changes.</p></div></div>
     </section>
 
     <section class="view" id="view-data">
@@ -100,7 +135,7 @@
         <section class="panel data-card"><span class="data-icon">⛓</span><h2>Connect a local file</h2><p>Chrome and Edge can save directly to a JSON file you choose. The browser will ask permission.</p><button class="ghost" id="connect-file">Connect JSON file</button><small id="file-status">Not connected</small></section>
         <section class="panel data-card danger-card"><span class="data-icon">×</span><h2>Reset this device</h2><p>Erase the browser copy after you have downloaded a backup. This cannot be undone.</p><button class="danger" id="reset-data">Erase local data</button></section>
       </div>
-      <div class="privacy-note"><strong>Why not <code>~/.config/bread_notes</code>?</strong><p>A website cannot choose or silently access folders on someone’s computer. That boundary protects personal files. Breadbook uses private browser storage and lets the user explicitly choose a JSON file when the browser supports it.</p></div>
+      <div class="privacy-note"><strong>Your notebook stays on this device.</strong><p>Breadbook uses private browser storage and lets you explicitly choose a JSON file when the browser supports it. Download a backup regularly, especially before clearing browser data.</p></div>
     </section>
   </main>
 

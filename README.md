@@ -1,6 +1,8 @@
 # Breadbook
 
-A private-by-default, static bread-baking journal that runs entirely in the browser. It needs no application server, account, database, or API key.
+A private-by-default bread journal with optional ingredient costing, sales snapshots, and progress tools. It runs entirely in the browser and needs no application server, account, database, or API key.
+
+Open **Setup** inside the app to choose between a simple Bread Journal, Baker + Costs, or Small Business view. Hidden features keep their data and can be restored at any time.
 
 ## Publish on GitHub Pages
 
